@@ -424,6 +424,39 @@ tbody tr:nth-child(even) {
     }
 }
 
+.icon-button.secondary {
+    background: #e0e7ff;
+    color: #4338ca;
+
+    &:hover {
+        box-shadow: 0 8px 16px rgba(67, 56, 202, 0.2);
+    }
+}
+
+.table-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.appointments-panel {
+    padding: 12px 16px 16px;
+    grid-column: 1 / -1;
+}
+
+.appointments-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.appointments-form {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.empty-state.compact {
+    margin-top: 4px;
+}
+
 .empty-state {
     padding: 28px;
     text-align: center;

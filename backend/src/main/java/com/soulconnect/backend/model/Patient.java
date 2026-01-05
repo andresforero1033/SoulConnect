@@ -15,29 +15,42 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id; // Usamos UUID para que los IDs sean seguros (ej. a0eebc99...)
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
 
-    @Column(nullable = false, length = 50)
+    @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(name = "identification_number", nullable = false, unique = true, length = 20)
     private String identificationNumber; // Cédula
 
-    @Column(nullable = false)
+    @Column(name = "identification_type", nullable = false, length = 10)
     private String identificationType; // CC, TI, CE
 
+    @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
+    @Column(name = "email")
     private String email;
 
+    @Column(name = "phone")
     private String phoneNumber;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist // Antes de guardar, asigna la fecha actual automáticamente
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

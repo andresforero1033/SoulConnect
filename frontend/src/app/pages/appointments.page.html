@@ -1,0 +1,135 @@
+<header class="topbar">
+  <div class="page-title">
+    <p>Agenda</p>
+    <h1>Gestión de citas</h1>
+  </div>
+  <div class="top-actions">
+    <div class="stat-chip">
+      <span class="material-symbols-rounded">schedule</span>
+      {{ appointments.length }} citas
+    </div>
+    <div class="stat-chip ghost" role="button" (click)="goToPatients()">
+      <span class="material-symbols-rounded">groups</span>
+      Ir a pacientes
+    </div>
+  </div>
+</header>
+
+<div class="toast-container">
+  <div *ngFor="let t of toasts" class="toast" [ngClass]="t.type">
+    {{ t.message }}
+  </div>
+</div>
+
+<main class="workspace">
+  <section class="card form-panel">
+    <div class="card-header">
+      <div>
+        <p class="eyebrow">Selecciona paciente</p>
+        <h2>Filtrar agenda</h2>
+        <p>Elige un paciente para ver y gestionar sus citas.</p>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="patientSelector">Paciente</label>
+        <select
+          id="patientSelector"
+          [value]="selectedPatient?.id || ''"
+          (change)="selectPatientFromList($any($event.target).value)"
+        >
+          <option value="">Selecciona un paciente</option>
+          <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }} · {{ p.identificationNumber }}</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn-primary" (click)="goToPatients()">
+          <span class="material-symbols-rounded">person_add</span>
+          Gestionar pacientes
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card appointments-panel">
+    <div class="card-header">
+      <div>
+        <p class="eyebrow">Citas</p>
+        <h2>Historial y agendamiento</h2>
+        <p *ngIf="!selectedPatient">Selecciona un paciente para ver y crear citas.</p>
+        <p *ngIf="selectedPatient">{{ selectedPatient.firstName }} {{ selectedPatient.lastName }} · {{ selectedPatient.identificationNumber }}</p>
+      </div>
+      <span class="tag" *ngIf="selectedPatient">
+        <span class="material-symbols-rounded">schedule</span>
+        {{ appointments.length }} citas
+      </span>
+    </div>
+
+    <div *ngIf="!selectedPatient" class="empty-state">
+      <div class="empty-illustration">📅</div>
+      <p>Elige un paciente para gestionar sus citas.</p>
+    </div>
+
+    <div *ngIf="selectedPatient" class="appointments-body">
+      <form [formGroup]="appointmentForm" (ngSubmit)="onCreateAppointment()" class="form-grid appointments-form">
+        <div class="form-group">
+          <label for="appointmentDate">Fecha</label>
+          <input id="appointmentDate" type="date" formControlName="date" />
+        </div>
+        <div class="form-group">
+          <label for="appointmentTime">Hora</label>
+          <input id="appointmentTime" type="time" formControlName="time" />
+        </div>
+        <div class="form-group">
+          <label for="specialty">Especialidad</label>
+          <input id="specialty" type="text" formControlName="specialty" placeholder="Ej. Cardiología" />
+        </div>
+        <div class="form-group">
+          <label for="status">Estado</label>
+          <select id="status" formControlName="status">
+            <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" type="submit" [disabled]="appointmentForm.invalid">
+            <span class="material-symbols-rounded">add</span>
+            Agendar
+          </button>
+        </div>
+      </form>
+
+      <div *ngIf="appointments.length === 0" class="empty-state compact">
+        <div class="empty-illustration">🗒️</div>
+        <p>Sin citas registradas para este paciente.</p>
+      </div>
+
+      <div class="table-wrapper" *ngIf="appointments.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Especialidad</th>
+              <th>Estado</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of appointments">
+              <td>{{ a.date }}</td>
+              <td>{{ a.time }}</td>
+              <td>{{ a.specialty }}</td>
+              <td>{{ a.status }}</td>
+              <td>
+                <button type="button" class="icon-button" (click)="onDeleteAppointment(a.id)" title="Eliminar cita">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>

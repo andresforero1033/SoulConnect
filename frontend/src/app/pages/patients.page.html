@@ -1,0 +1,155 @@
+<header class="topbar">
+  <div class="page-title">
+    <p>Panel clínico</p>
+    <h1>Gestión de pacientes</h1>
+  </div>
+  <div class="top-actions">
+    <div class="stat-chip">
+      <span class="material-symbols-rounded">group</span>
+      {{ filtered.length }} pacientes
+    </div>
+    <div class="stat-chip ghost">
+      <span class="material-symbols-rounded">hourglass_bottom</span>
+      Turnos próximos
+    </div>
+  </div>
+</header>
+
+<div class="toast-container">
+  <div *ngFor="let t of toasts" class="toast" [ngClass]="t.type">
+    {{ t.message }}
+  </div>
+</div>
+
+<main class="workspace">
+  <section class="card form-panel">
+    <div class="card-header">
+      <div>
+        <p class="eyebrow">Nuevo registro</p>
+        <h2>Registrar paciente</h2>
+        <p>Completa los datos para crear un nuevo registro.</p>
+      </div>
+      <span class="tag">
+        <span class="material-symbols-rounded">lock</span>
+        Datos cifrados
+      </span>
+    </div>
+
+    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()" class="form-grid">
+      <div class="form-group">
+        <label for="firstName">Nombre</label>
+        <input id="firstName" type="text" formControlName="firstName" placeholder="Ej. Ana" />
+      </div>
+      <div class="form-group">
+        <label for="lastName">Apellido</label>
+        <input id="lastName" type="text" formControlName="lastName" placeholder="Ej. Perez" />
+      </div>
+
+      <div class="form-group">
+        <label for="identificationType">Tipo ID</label>
+        <select id="identificationType" formControlName="identificationType">
+          <option value="CC">CC</option>
+          <option value="TI">TI</option>
+          <option value="CE">CE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="identificationNumber">Numero ID</label>
+        <input id="identificationNumber" type="text" formControlName="identificationNumber" placeholder="Documento" />
+      </div>
+
+      <div class="form-group">
+        <label for="dateOfBirth">Fecha de nacimiento</label>
+        <input id="dateOfBirth" type="date" formControlName="dateOfBirth" [class.invalid]="isInvalid('dateOfBirth')" />
+        <div class="error" *ngIf="patientForm.get('dateOfBirth')?.errors?.['futureDate'] && (patientForm.get('dateOfBirth')?.dirty || patientForm.get('dateOfBirth')?.touched)">
+          Fecha en el futuro no valida
+        </div>
+        <div class="error" *ngIf="patientForm.get('dateOfBirth')?.errors?.['required'] && (patientForm.get('dateOfBirth')?.dirty || patientForm.get('dateOfBirth')?.touched)">
+          Fecha obligatoria
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" formControlName="email" placeholder="opcional" [class.invalid]="isInvalid('email')" />
+        <div class="error" *ngIf="patientForm.get('email')?.errors?.['email'] && (patientForm.get('email')?.dirty || patientForm.get('email')?.touched)">
+          Email invalido
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="phoneNumber">Telefono</label>
+        <input id="phoneNumber" type="tel" formControlName="phoneNumber" placeholder="opcional" />
+      </div>
+
+      <div class="actions">
+        <button class="btn-primary" type="submit" [disabled]="patientForm.invalid">
+          <span class="material-symbols-rounded">save</span>
+          Guardar
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card list-panel">
+    <div class="card-header">
+      <div>
+        <p class="eyebrow">Base activa</p>
+        <h2>Pacientes</h2>
+        <p>Lista paginada con búsqueda rápida.</p>
+      </div>
+      <div class="search-box">
+        <span class="material-symbols-rounded">search</span>
+        <input type="text" placeholder="Buscar por nombre o ID" (input)="onSearch($event.target.value)" />
+      </div>
+    </div>
+
+    <div class="pagination-bar">
+      <button type="button" (click)="goToPage(page - 1)" [disabled]="page <= 1">Anterior</button>
+      <span>Pagina {{ page }} / {{ totalPages }}</span>
+      <button type="button" (click)="goToPage(page + 1)" [disabled]="page >= totalPages">Siguiente</button>
+    </div>
+
+    <div *ngIf="paged.length === 0" class="empty-state">
+      <div class="empty-illustration">🩺</div>
+      <p>No encontramos pacientes con ese nombre. ¿Deseas registrar uno nuevo?</p>
+    </div>
+
+    <div class="table-wrapper" *ngIf="paged.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>Tipo ID</th>
+            <th>Numero</th>
+            <th>Fecha nac.</th>
+            <th>Email</th>
+            <th>Telefono</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of paged">
+            <td>{{ p.firstName }}</td>
+            <td>{{ p.lastName }}</td>
+            <td>{{ p.identificationType }}</td>
+            <td>{{ p.identificationNumber }}</td>
+            <td>{{ p.dateOfBirth || '—' }}</td>
+            <td>{{ p.email || '—' }}</td>
+            <td>{{ p.phoneNumber || '—' }}</td>
+            <td>
+              <div class="table-actions">
+                <button type="button" class="icon-button secondary" (click)="navigateToAppointments(p)" title="Ver citas">
+                  <span class="material-symbols-rounded">event</span>
+                </button>
+                <button type="button" class="icon-button" (click)="onDelete(p.id)" title="Eliminar">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

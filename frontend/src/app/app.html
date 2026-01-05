@@ -1,15 +1,108 @@
-<div class="container">
-  <h1>Bienvenido a SoulConnect 🏥</h1>
+<div class="main-container">
 
-  <div *ngIf="patients.length === 0" class="success-box">
-    <h3 class="success-text">✅ Conexión Exitosa</h3>
-    <p>El Frontend (Angular) se conectó al Backend (Java).</p>
-    <p>Respuesta de la base de datos: <strong>[]</strong> (Lista vacía)</p>
+  <div class="toast-container">
+    <div *ngFor="let t of toasts" class="toast" [ngClass]="t.type">
+      {{ t.message }}
+    </div>
   </div>
 
-  <ul *ngIf="patients.length > 0">
-    <li *ngFor="let p of patients">
-      {{ p.firstName }} {{ p.lastName }}
-    </li>
-  </ul>
+  <div class="form-card">
+    <h2>Registrar paciente</h2>
+    <form [formGroup]="patientForm" (ngSubmit)="onSubmit()">
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="firstName">Nombre</label>
+          <input id="firstName" type="text" formControlName="firstName" placeholder="Ej. Ana" />
+        </div>
+        <div class="form-group flex-1">
+          <label for="lastName">Apellido</label>
+          <input id="lastName" type="text" formControlName="lastName" placeholder="Ej. Perez" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="identificationType">Tipo ID</label>
+          <select id="identificationType" formControlName="identificationType">
+            <option value="CC">CC</option>
+            <option value="TI">TI</option>
+            <option value="CE">CE</option>
+          </select>
+        </div>
+        <div class="form-group flex-1">
+          <label for="identificationNumber">Numero ID</label>
+          <input id="identificationNumber" type="text" formControlName="identificationNumber" placeholder="Documento" />
+        </div>
+        <div class="form-group">
+          <label for="dateOfBirth">Fecha de nacimiento</label>
+          <input id="dateOfBirth" type="date" formControlName="dateOfBirth" [class.invalid]="isInvalid('dateOfBirth')" />
+          <div class="error" *ngIf="patientForm.get('dateOfBirth')?.errors?.['futureDate'] && (patientForm.get('dateOfBirth')?.dirty || patientForm.get('dateOfBirth')?.touched)">
+            Fecha en el futuro no valida
+          </div>
+          <div class="error" *ngIf="patientForm.get('dateOfBirth')?.errors?.['required'] && (patientForm.get('dateOfBirth')?.dirty || patientForm.get('dateOfBirth')?.touched)">
+            Fecha obligatoria
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" placeholder="opcional" [class.invalid]="isInvalid('email')" />
+          <div class="error" *ngIf="patientForm.get('email')?.errors?.['email'] && (patientForm.get('email')?.dirty || patientForm.get('email')?.touched)">
+            Email invalido
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="phoneNumber">Telefono</label>
+          <input id="phoneNumber" type="tel" formControlName="phoneNumber" placeholder="opcional" />
+        </div>
+      </div>
+
+      <button class="btn-save" type="submit" [disabled]="patientForm.invalid">Guardar</button>
+    </form>
+  </div>
+
+  <div class="form-card">
+    <h2>Pacientes</h2>
+
+    <div class="form-group mb-12">
+      <input type="text" placeholder="Buscar por nombre o ID" (input)="onSearch($event.target.value)" />
+    </div>
+
+    <div class="pagination-bar">
+      <button type="button" (click)="goToPage(page - 1)" [disabled]="page <= 1">Anterior</button>
+      <span>Pagina {{ page }} / {{ totalPages }}</span>
+      <button type="button" (click)="goToPage(page + 1)" [disabled]="page >= totalPages">Siguiente</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Apellido</th>
+          <th>Tipo ID</th>
+          <th>Numero</th>
+          <th>Fecha nac.</th>
+          <th>Email</th>
+          <th>Telefono</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of paged">
+          <td>{{ p.firstName }}</td>
+          <td>{{ p.lastName }}</td>
+          <td>{{ p.identificationType }}</td>
+          <td>{{ p.identificationNumber }}</td>
+          <td>{{ p.dateOfBirth || '—' }}</td>
+          <td>{{ p.email || '—' }}</td>
+          <td>{{ p.phoneNumber || '—' }}</td>
+          <td>
+            <button type="button" class="btn-delete" (click)="onDelete(p.id)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

@@ -6,13 +6,22 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class PatientService {
-  // Esta es la URL de tu Backend (Java)
   private apiUrl = 'http://localhost:8080/api/patients';
 
   constructor(private http: HttpClient) { }
 
-  // Método para pedir la lista de pacientes
+  // Obtener todos los pacientes
   getPatients(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
+  }
+
+  // Guardar un nuevo paciente
+  createPatient(patient: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, patient);
+  }
+
+  // Eliminar un paciente por id
+  deletePatient(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

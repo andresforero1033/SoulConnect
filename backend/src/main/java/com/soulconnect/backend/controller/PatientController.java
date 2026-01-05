@@ -2,9 +2,12 @@ package com.soulconnect.backend.controller;
 
 import com.soulconnect.backend.model.Patient;
 import com.soulconnect.backend.repository.PatientRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/patients") // La dirección web será http://localhost:8080/api/patients
@@ -26,6 +29,14 @@ public class PatientController {
     // POST: Guardar un nuevo paciente
     @PostMapping
     public Patient createPatient(@RequestBody Patient patient) {
+        repository.findByIdentificationNumber(patient.getIdentificationNumber())
+                .ifPresent(p -> { throw new ResponseStatusException(HttpStatus.CONFLICT, "Identificacion ya registrada"); });
         return repository.save(patient);
+    }
+
+    // DELETE: Eliminar un paciente por ID
+    @DeleteMapping("/{id}")
+    public void deletePatient(@PathVariable UUID id) {
+        repository.deleteById(id);
     }
 }

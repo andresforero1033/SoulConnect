@@ -27,7 +27,7 @@ export class AppComponent implements OnInit {
   patients: any[] = [];
   filtered: any[] = [];
   page = 1;
-  pageSize = 5;
+  pageSize = 4;
   toasts: { type: 'success' | 'error'; message: string; id: number }[] = [];
 
   patientForm = new FormGroup({

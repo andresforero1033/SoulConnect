@@ -34,6 +34,26 @@ public class PatientController {
         return repository.save(patient);
     }
 
+        @PutMapping("/{id}")
+        public Patient updatePatient(@PathVariable UUID id, @RequestBody Patient payload) {
+        Patient existing = repository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+
+        repository.findByIdentificationNumber(payload.getIdentificationNumber())
+            .filter(p -> !p.getId().equals(id))
+            .ifPresent(p -> { throw new ResponseStatusException(HttpStatus.CONFLICT, "Identificacion ya registrada"); });
+
+        existing.setFirstName(payload.getFirstName());
+        existing.setLastName(payload.getLastName());
+        existing.setIdentificationNumber(payload.getIdentificationNumber());
+        existing.setIdentificationType(payload.getIdentificationType());
+        existing.setDateOfBirth(payload.getDateOfBirth());
+        existing.setEmail(payload.getEmail());
+        existing.setPhoneNumber(payload.getPhoneNumber());
+
+        return repository.save(existing);
+        }
+
     // DELETE: Eliminar un paciente por ID
     @DeleteMapping("/{id}")
     public void deletePatient(@PathVariable UUID id) {

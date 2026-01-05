@@ -35,6 +35,7 @@ export class PatientsPageComponent implements OnInit {
     page = 1;
     pageSize = 4;
     toasts: { type: 'success' | 'error'; message: string; id: number }[] = [];
+    editingId: string | null = null;
 
     patientForm = new FormGroup({
         firstName: new FormControl('', [Validators.required, Validators.minLength(2)]),
@@ -72,22 +73,64 @@ export class PatientsPageComponent implements OnInit {
             return;
         }
 
-        this.patientService.createPatient(this.patientForm.value).subscribe({
-            next: () => {
-                this.loadPatients();
-                this.patientForm.reset({ identificationType: 'CC' });
-                this.page = 1;
-                this.showToast('success', 'Paciente guardado');
-            },
-            error: (err: any) => {
-                console.error('Error al guardar:', err);
-                if (err?.status === 409) {
-                    this.showToast('error', 'Identificacion ya registrada');
-                } else {
-                    this.showToast('error', 'No se pudo guardar');
-                }
-            },
+        const payload = this.patientForm.value;
+
+        if (this.editingId) {
+            this.patientService.updatePatient(this.editingId, payload).subscribe({
+                next: () => {
+                    this.loadPatients();
+                    this.resetForm();
+                    this.showToast('success', 'Paciente actualizado');
+                },
+                error: (err: any) => {
+                    console.error('Error al actualizar:', err);
+                    if (err?.status === 409) {
+                        this.showToast('error', 'Identificacion ya registrada');
+                    } else {
+                        this.showToast('error', 'No se pudo actualizar');
+                    }
+                },
+            });
+        } else {
+            this.patientService.createPatient(payload).subscribe({
+                next: () => {
+                    this.loadPatients();
+                    this.resetForm();
+                    this.page = 1;
+                    this.showToast('success', 'Paciente guardado');
+                },
+                error: (err: any) => {
+                    console.error('Error al guardar:', err);
+                    if (err?.status === 409) {
+                        this.showToast('error', 'Identificacion ya registrada');
+                    } else {
+                        this.showToast('error', 'No se pudo guardar');
+                    }
+                },
+            });
+        }
+    }
+
+    startEdit(patient: any): void {
+        this.editingId = patient.id;
+        this.patientForm.patchValue({
+            firstName: patient.firstName,
+            lastName: patient.lastName,
+            identificationNumber: patient.identificationNumber,
+            identificationType: patient.identificationType,
+            dateOfBirth: patient.dateOfBirth,
+            email: patient.email,
+            phoneNumber: patient.phoneNumber,
         });
+    }
+
+    cancelEdit(): void {
+        this.resetForm();
+    }
+
+    private resetForm(): void {
+        this.editingId = null;
+        this.patientForm.reset({ identificationType: 'CC' });
     }
 
     onDelete(id: string): void {

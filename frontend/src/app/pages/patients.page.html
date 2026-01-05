@@ -25,9 +25,9 @@
   <section class="card form-panel">
     <div class="card-header">
       <div>
-        <p class="eyebrow">Nuevo registro</p>
-        <h2>Registrar paciente</h2>
-        <p>Completa los datos para crear un nuevo registro.</p>
+        <p class="eyebrow">{{ editingId ? 'Editar registro' : 'Nuevo registro' }}</p>
+        <h2>{{ editingId ? 'Actualizar paciente' : 'Registrar paciente' }}</h2>
+        <p>Completa los datos para crear o actualizar un registro.</p>
       </div>
       <span class="tag">
         <span class="material-symbols-rounded">lock</span>
@@ -84,7 +84,11 @@
       <div class="actions">
         <button class="btn-primary" type="submit" [disabled]="patientForm.invalid">
           <span class="material-symbols-rounded">save</span>
-          Guardar
+          {{ editingId ? 'Actualizar' : 'Guardar' }}
+        </button>
+        <button *ngIf="editingId" type="button" class="btn-secondary" (click)="cancelEdit()">
+          <span class="material-symbols-rounded">close</span>
+          Cancelar
         </button>
       </div>
     </form>
@@ -139,6 +143,9 @@
             <td>{{ p.phoneNumber || '—' }}</td>
             <td>
               <div class="table-actions">
+                    <button type="button" class="icon-button" (click)="startEdit(p)" title="Editar">
+                      <span class="material-symbols-rounded">edit</span>
+                    </button>
                 <button type="button" class="icon-button secondary" (click)="navigateToAppointments(p)" title="Ver citas">
                   <span class="material-symbols-rounded">event</span>
                 </button>

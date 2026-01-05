@@ -20,6 +20,11 @@ export class PatientService {
     return this.http.post<any>(this.apiUrl, patient);
   }
 
+  // Actualizar un paciente
+  updatePatient(id: string, patient: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${id}`, patient);
+  }
+
   // Eliminar un paciente por id
   deletePatient(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);

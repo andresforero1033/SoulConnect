@@ -26,7 +26,7 @@
     <div class="card-header">
       <div>
         <p class="eyebrow">{{ editingId ? 'Editar registro' : 'Nuevo registro' }}</p>
-        <h2>{{ editingId ? 'Actualizar paciente' : 'Registrar paciente' }}</h2>
+        <h2>Paciente</h2>
         <p>Completa los datos para crear o actualizar un registro.</p>
       </div>
       <span class="tag">
@@ -43,6 +43,57 @@
       <div class="form-group">
         <label for="lastName">Apellido</label>
         <input id="lastName" type="text" formControlName="lastName" placeholder="Ej. Perez" />
+      </div>
+
+      <div class="form-group">
+        <label for="sexBiological">Sexo biológico</label>
+        <select id="sexBiological" formControlName="sexBiological">
+          <option value="">Selecciona</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Intersexual">Intersexual</option>
+          <option value="Otro">Otro</option>
+          <option value="Prefiero no decir">Prefiero no decir</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="genderIdentity">Identidad de género</label>
+        <select id="genderIdentity" formControlName="genderIdentity">
+          <option value="">Selecciona</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Hombre">Hombre</option>
+          <option value="No binario">No binario</option>
+          <option value="Transgénero">Transgénero</option>
+          <option value="Intergénero">Intergénero</option>
+          <option value="Prefiero no decir">Prefiero no decir</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="maritalStatus">Estado civil</label>
+        <select id="maritalStatus" formControlName="maritalStatus">
+          <option value="">Selecciona</option>
+          <option value="Soltero/a">Soltero/a</option>
+          <option value="Casado/a">Casado/a</option>
+          <option value="Unión libre">Unión libre</option>
+          <option value="Separado/a">Separado/a</option>
+          <option value="Divorciado/a">Divorciado/a</option>
+          <option value="Viudo/a">Viudo/a</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="educationLevel">Escolaridad</label>
+        <select id="educationLevel" formControlName="educationLevel">
+          <option value="">Selecciona</option>
+          <option value="Ninguna">Ninguna</option>
+          <option value="Primaria">Primaria</option>
+          <option value="Secundaria">Secundaria</option>
+          <option value="Técnica/Tecnológica">Técnica/Tecnológica</option>
+          <option value="Universitaria">Universitaria</option>
+          <option value="Posgrado">Posgrado</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -83,7 +134,23 @@
 
       <div class="form-group">
         <label for="eps">EPS</label>
-        <input id="eps" type="text" formControlName="eps" placeholder="Entidad promotora" />
+        <div class="typeahead">
+          <input
+            id="eps"
+            type="text"
+            formControlName="eps"
+            placeholder="Busca o selecciona EPS"
+            autocomplete="off"
+            (input)="onEpsInput($event.target.value)"
+            (focus)="epsDropdownOpen = true"
+            (blur)="closeEpsDropdown()"
+          />
+          <div class="dropdown" *ngIf="epsDropdownOpen && filteredEps.length > 0">
+            <button type="button" *ngFor="let option of filteredEps" (mousedown)="onSelectEps(option)">
+              <span class="name">{{ option }}</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -92,8 +159,69 @@
       </div>
 
       <div class="form-group">
+        <label for="location">Ciudad / municipio</label>
+        <div class="typeahead">
+          <input
+            id="location"
+            type="text"
+            formControlName="location"
+            placeholder="Busca por ciudad o departamento"
+            autocomplete="off"
+            (input)="onLocationInput($event.target.value)"
+            (focus)="locationDropdownOpen = true"
+            (blur)="closeLocationDropdown()"
+          />
+          <div class="dropdown" *ngIf="locationDropdownOpen && filteredLocations.length > 0">
+            <button type="button" *ngFor="let loc of filteredLocations" (mousedown)="onSelectLocation(loc)">
+              <span class="name">{{ loc.city }}</span>
+              <span class="spec">{{ loc.department }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="housingType">Tipo de vivienda</label>
+        <select id="housingType" formControlName="housingType">
+          <option value="">Selecciona</option>
+          <option value="Casa">Casa</option>
+          <option value="Apartamento">Apartamento</option>
+          <option value="Rural">Rural</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="socioeconomicStratum">Estrato</label>
+        <select id="socioeconomicStratum" formControlName="socioeconomicStratum">
+          <option value="">Selecciona</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="residenceDurationMonths">Tiempo de residencia (meses)</label>
+        <input id="residenceDurationMonths" type="number" min="0" formControlName="residenceDurationMonths" placeholder="Ej. 12" />
+      </div>
+
+      <div class="form-group">
         <label for="bloodType">Tipo de sangre</label>
-        <input id="bloodType" type="text" formControlName="bloodType" placeholder="Ej. O+" />
+        <select id="bloodType" formControlName="bloodType">
+          <option value="">Selecciona</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -104,6 +232,41 @@
       <div class="form-group">
         <label for="weightKg">Peso (kg)</label>
         <input id="weightKg" type="number" step="0.1" min="0" formControlName="weightKg" placeholder="Ej. 70" />
+      </div>
+
+      <div class="form-group">
+        <label for="allergies">Alergias</label>
+        <textarea id="allergies" formControlName="allergies" placeholder="Registra alergias conocidas"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="medications">Medicamentos actuales</label>
+        <textarea id="medications" formControlName="medications" placeholder="Medicamentos en curso"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="surgeries">Antecedentes quirúrgicos</label>
+        <textarea id="surgeries" formControlName="surgeries" placeholder="Cirugías previas"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="familyHistory">Antecedentes familiares</label>
+        <textarea id="familyHistory" formControlName="familyHistory" placeholder="Enfermedades familiares"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="habits">Hábitos (tabaco, alcohol, actividad)</label>
+        <textarea id="habits" formControlName="habits" placeholder="Hábitos relevantes"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="vaccines">Vacunas</label>
+        <textarea id="vaccines" formControlName="vaccines" placeholder="Vacunas aplicadas"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="chronicConditions">Condiciones crónicas</label>
+        <textarea id="chronicConditions" formControlName="chronicConditions" placeholder="Enfermedades crónicas"></textarea>
       </div>
 
       <div class="actions">

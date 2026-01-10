@@ -5,10 +5,6 @@
     <p *ngIf="patient">{{ patient.identificationType }} · {{ patient.identificationNumber }}</p>
   </div>
   <div class="top-actions">
-    <div class="stat-chip">
-      <span class="material-symbols-rounded">event</span>
-      {{ appointments.length }} citas
-    </div>
     <button class="btn-secondary" type="button" (click)="goBack()">
       <span class="material-symbols-rounded">arrow_back</span>
       Volver a pacientes
@@ -68,7 +64,23 @@
       </div>
       <div class="form-group">
         <label for="eps">EPS</label>
-        <input id="eps" type="text" formControlName="eps" />
+        <div class="typeahead">
+          <input
+            id="eps"
+            type="text"
+            formControlName="eps"
+            placeholder="Busca o selecciona EPS"
+            autocomplete="off"
+            (input)="onEpsInput($event.target.value)"
+            (focus)="epsDropdownOpen = true"
+            (blur)="closeEpsDropdown()"
+          />
+          <div class="dropdown" *ngIf="epsDropdownOpen && filteredEps.length > 0">
+            <button type="button" *ngFor="let option of filteredEps" (mousedown)="onSelectEps(option)">
+              <span class="name">{{ option }}</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="address">Dirección</label>
@@ -76,7 +88,17 @@
       </div>
       <div class="form-group">
         <label for="bloodType">Tipo de sangre</label>
-        <input id="bloodType" type="text" formControlName="bloodType" placeholder="Ej. O+" />
+        <select id="bloodType" formControlName="bloodType">
+          <option value="">Selecciona</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="heightCm">Altura (cm)</label>
@@ -111,19 +133,50 @@
       <form [formGroup]="patientForm" class="form-grid">
       <div class="form-group">
         <label for="sexBiological">Sexo biológico</label>
-        <input id="sexBiological" type="text" formControlName="sexBiological" />
+        <select id="sexBiological" formControlName="sexBiological">
+          <option value="">Selecciona</option>
+          <option value="Masculino">Masculino</option>
+          <option value="Femenino">Femenino</option>
+          <option value="Intersexual">Intersexual</option>
+          <option value="Otro">Otro</option>
+          <option value="Prefiero no decir">Prefiero no decir</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="genderIdentity">Identidad de género</label>
-        <input id="genderIdentity" type="text" formControlName="genderIdentity" />
+        <select id="genderIdentity" formControlName="genderIdentity">
+          <option value="">Selecciona</option>
+          <option value="Mujer">Mujer</option>
+          <option value="Hombre">Hombre</option>
+          <option value="No binario">No binario</option>
+          <option value="Transgénero">Transgénero</option>
+          <option value="Intergénero">Intergénero</option>
+          <option value="Prefiero no decir">Prefiero no decir</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="maritalStatus">Estado civil</label>
-        <input id="maritalStatus" type="text" formControlName="maritalStatus" />
+        <select id="maritalStatus" formControlName="maritalStatus">
+          <option value="">Selecciona</option>
+          <option value="Soltero/a">Soltero/a</option>
+          <option value="Casado/a">Casado/a</option>
+          <option value="Unión libre">Unión libre</option>
+          <option value="Separado/a">Separado/a</option>
+          <option value="Divorciado/a">Divorciado/a</option>
+          <option value="Viudo/a">Viudo/a</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="educationLevel">Escolaridad</label>
-        <input id="educationLevel" type="text" formControlName="educationLevel" />
+        <select id="educationLevel" formControlName="educationLevel">
+          <option value="">Selecciona</option>
+          <option value="Ninguna">Ninguna</option>
+          <option value="Primaria">Primaria</option>
+          <option value="Secundaria">Secundaria</option>
+          <option value="Técnica/Tecnológica">Técnica/Tecnológica</option>
+          <option value="Universitaria">Universitaria</option>
+          <option value="Posgrado">Posgrado</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="occupation">Ocupación</label>
@@ -138,12 +191,25 @@
         <input id="emergencyContactPhone" type="tel" formControlName="emergencyContactPhone" />
       </div>
       <div class="form-group">
-        <label for="city">Ciudad</label>
-        <input id="city" type="text" formControlName="city" />
-      </div>
-      <div class="form-group">
-        <label for="municipality">Municipio</label>
-        <input id="municipality" type="text" formControlName="municipality" />
+        <label for="location">Ciudad / municipio</label>
+        <div class="typeahead">
+          <input
+            id="location"
+            type="text"
+            formControlName="location"
+            placeholder="Busca por ciudad o departamento"
+            autocomplete="off"
+            (input)="onLocationInput($event.target.value)"
+            (focus)="locationDropdownOpen = true"
+            (blur)="closeLocationDropdown()"
+          />
+          <div class="dropdown" *ngIf="locationDropdownOpen && filteredLocations.length > 0">
+            <button type="button" *ngFor="let loc of filteredLocations" (mousedown)="onSelectLocation(loc)">
+              <span class="name">{{ loc.city }}</span>
+              <span class="spec">{{ loc.department }}</span>
+            </button>
+          </div>
+        </div>
       </div>
       <div class="form-group">
         <label for="neighborhood">Barrio/Localidad</label>
@@ -155,11 +221,25 @@
       </div>
       <div class="form-group">
         <label for="housingType">Tipo de vivienda</label>
-        <input id="housingType" type="text" formControlName="housingType" />
+        <select id="housingType" formControlName="housingType">
+          <option value="">Selecciona</option>
+          <option value="Casa">Casa</option>
+          <option value="Apartamento">Apartamento</option>
+          <option value="Rural">Rural</option>
+          <option value="Otro">Otro</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="socioeconomicStratum">Estrato</label>
-        <input id="socioeconomicStratum" type="text" formControlName="socioeconomicStratum" />
+        <select id="socioeconomicStratum" formControlName="socioeconomicStratum">
+          <option value="">Selecciona</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="residenceDurationMonths">Tiempo de residencia (meses)</label>
@@ -227,139 +307,4 @@
     </section>
   </div>
 
-  <section class="card appointments-panel">
-    <div class="card-header">
-      <div>
-        <p class="eyebrow">Citas</p>
-        <h2>Historial y agendamiento</h2>
-        <p *ngIf="patient">{{ patient.firstName }} {{ patient.lastName }} · {{ patient.identificationNumber }}</p>
-      </div>
-      <span class="tag">
-        <span class="material-symbols-rounded">schedule</span>
-        {{ appointments.length }} citas
-      </span>
-    </div>
-
-    <div class="appointments-body">
-      <form [formGroup]="appointmentForm" (ngSubmit)="saveAppointment()" class="form-grid appointments-form">
-        <div class="form-group">
-          <label for="appointmentDate">Fecha</label>
-          <input id="appointmentDate" type="date" formControlName="date" />
-        </div>
-        <div class="form-group">
-          <label for="appointmentTime">Hora</label>
-          <input id="appointmentTime" type="time" formControlName="time" />
-        </div>
-        <div class="form-group">
-          <label for="specialty">Especialidad</label>
-          <div class="typeahead">
-            <input
-              id="specialty"
-              type="text"
-              formControlName="specialty"
-              placeholder="Busca o selecciona"
-              autocomplete="off"
-              (input)="onSpecialtyInput($event.target.value)"
-              (focus)="typeDropdownOpen = true"
-              (blur)="closeTypeDropdown()"
-            />
-            <div class="dropdown" *ngIf="typeDropdownOpen && filteredTypes.length > 0">
-              <button type="button" *ngFor="let t of filteredTypes" (mousedown)="onSelectType(t)">
-                <span class="code">{{ t.code }}</span>
-                <span class="name">{{ t.name }}</span>
-                <span class="spec">{{ t.specialty }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="status">Estado</label>
-          <select id="status" formControlName="status">
-            <option *ngFor="let s of statusOptions" [value]="s">{{ s }}</option>
-          </select>
-        </div>
-        <div class="actions">
-          <button class="btn-primary" type="submit" [disabled]="appointmentForm.invalid">
-            <span class="material-symbols-rounded">{{ editingAppointmentId ? 'save' : 'add' }}</span>
-            {{ editingAppointmentId ? 'Actualizar cita' : 'Agendar' }}
-          </button>
-          <button *ngIf="editingAppointmentId" type="button" class="btn-secondary" (click)="cancelAppointmentEdit()">
-            <span class="material-symbols-rounded">close</span>
-            Cancelar
-          </button>
-        </div>
-      </form>
-
-      <div *ngIf="appointments.length === 0" class="empty-state compact">
-        <div class="empty-illustration">🗒️</div>
-        <p>Sin citas registradas para este paciente.</p>
-      </div>
-
-      <h3 *ngIf="pendingAppointments.length">Citas pendientes</h3>
-      <div class="table-wrapper" *ngIf="pendingAppointments.length > 0">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Especialidad</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let a of pendingAppointments">
-              <td>{{ a.date }}</td>
-              <td>{{ a.time }}</td>
-              <td>{{ a.specialty }}</td>
-              <td>{{ a.status }}</td>
-              <td>
-                <div class="table-actions">
-                  <button type="button" class="icon-button" (click)="startEditAppointment(a)" title="Editar cita">
-                    <span class="material-symbols-rounded">edit</span>
-                  </button>
-                  <button type="button" class="icon-button" (click)="deleteAppointment(a.id)" title="Eliminar cita">
-                    <span class="material-symbols-rounded">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3 *ngIf="pastAppointments.length">Citas pasadas</h3>
-      <div class="table-wrapper" *ngIf="pastAppointments.length > 0">
-        <table>
-          <thead>
-            <tr>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Especialidad</th>
-              <th>Estado</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let a of pastAppointments">
-              <td>{{ a.date }}</td>
-              <td>{{ a.time }}</td>
-              <td>{{ a.specialty }}</td>
-              <td>{{ a.status }}</td>
-              <td>
-                <div class="table-actions">
-                  <button type="button" class="icon-button" (click)="startEditAppointment(a)" title="Editar cita">
-                    <span class="material-symbols-rounded">edit</span>
-                  </button>
-                  <button type="button" class="icon-button" (click)="deleteAppointment(a.id)" title="Eliminar cita">
-                    <span class="material-symbols-rounded">delete</span>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
 </main>

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { PatientService } from '../services/patient';
 import { AppointmentService } from '../services/appointment';
 
@@ -19,6 +20,33 @@ export class PatientDetailPageComponent implements OnInit {
   pastAppointments: any[] = [];
   appointmentTypes: any[] = [];
   filteredTypes: any[] = [];
+  locations: { city: string; department: string }[] = [];
+  filteredLocations: { city: string; department: string }[] = [];
+  locationDropdownOpen = false;
+  epsList: string[] = [
+    'Nueva EPS',
+    'EPS Sura',
+    'Sanitas',
+    'Salud Total',
+    'Compensar',
+    'Famisanar',
+    'Coosalud',
+    'Mutual Ser',
+    'Aliansalud',
+    'Savia Salud',
+    'Emssanar',
+    'Capital Salud',
+    'Ecoopsos',
+    'Cajacopi',
+    'Asmet Salud',
+    'SOS EPS',
+    'EPS Familiar de Colombia',
+    'Dusakawi EPSI',
+    'Mallamas EPSI',
+    'AIC EPSI'
+  ];
+  filteredEps: string[] = [];
+  epsDropdownOpen = false;
   typeDropdownOpen = false;
   editingAppointmentId: string | null = null;
   statusOptions = ['PENDING', 'COMPLETED', 'CANCELLED'];
@@ -36,7 +64,36 @@ export class PatientDetailPageComponent implements OnInit {
     address: new FormControl('', []),
     bloodType: new FormControl('', []),
     heightCm: new FormControl('', []),
-    weightKg: new FormControl('', [])
+    weightKg: new FormControl('', []),
+    location: new FormControl('', []),
+    sexBiological: new FormControl('', []),
+    genderIdentity: new FormControl('', []),
+    maritalStatus: new FormControl('', []),
+    educationLevel: new FormControl('', []),
+    occupation: new FormControl('', []),
+    emergencyContactName: new FormControl('', []),
+    emergencyContactPhone: new FormControl('', []),
+    city: new FormControl('', []),
+    municipality: new FormControl('', []),
+    neighborhood: new FormControl('', []),
+    postalCode: new FormControl('', []),
+    housingType: new FormControl('', []),
+    socioeconomicStratum: new FormControl('', []),
+    residenceDurationMonths: new FormControl('', []),
+    abdominalCircumferenceCm: new FormControl('', []),
+    heartRateBpm: new FormControl('', []),
+    respiratoryRateRpm: new FormControl('', []),
+    bloodPressureSys: new FormControl('', []),
+    bloodPressureDia: new FormControl('', []),
+    temperatureC: new FormControl('', []),
+    spo2: new FormControl('', []),
+    allergies: new FormControl('', []),
+    medications: new FormControl('', []),
+    surgeries: new FormControl('', []),
+    familyHistory: new FormControl('', []),
+    habits: new FormControl('', []),
+    vaccines: new FormControl('', []),
+    chronicConditions: new FormControl('', [])
   });
 
   appointmentForm = new FormGroup({
@@ -59,20 +116,25 @@ export class PatientDetailPageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private patientService: PatientService,
-    private appointmentService: AppointmentService
+    private appointmentService: AppointmentService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
-      this.showToast('error', 'Paciente no encontrado');
-      this.router.navigate(['/pacientes']);
-      return;
-    }
-
-    this.loadPatient(id);
-    this.loadAppointments(id);
+    this.filteredEps = this.epsList;
+    this.loadLocations();
     this.loadAppointmentTypes();
+
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (!id) {
+        this.showToast('error', 'Paciente no encontrado');
+        this.router.navigate(['/pacientes']);
+        return;
+      }
+
+      this.loadPatient(id);
+    });
   }
 
   loadPatient(id: string): void {
@@ -91,8 +153,40 @@ export class PatientDetailPageComponent implements OnInit {
           address: patient.address,
           bloodType: patient.bloodType,
           heightCm: patient.heightCm,
-          weightKg: patient.weightKg
+          weightKg: patient.weightKg,
+          location: this.composeLocation(patient.city, patient.municipality),
+          sexBiological: patient.sexBiological,
+          genderIdentity: patient.genderIdentity,
+          maritalStatus: patient.maritalStatus,
+          educationLevel: patient.educationLevel,
+          occupation: patient.occupation,
+          emergencyContactName: patient.emergencyContactName,
+          emergencyContactPhone: patient.emergencyContactPhone,
+          city: patient.city,
+          municipality: patient.municipality,
+          neighborhood: patient.neighborhood,
+          postalCode: patient.postalCode,
+          housingType: patient.housingType,
+          socioeconomicStratum: patient.socioeconomicStratum,
+          residenceDurationMonths: patient.residenceDurationMonths,
+          abdominalCircumferenceCm: patient.abdominalCircumferenceCm,
+          heartRateBpm: patient.heartRateBpm,
+          respiratoryRateRpm: patient.respiratoryRateRpm,
+          bloodPressureSys: patient.bloodPressureSys,
+          bloodPressureDia: patient.bloodPressureDia,
+          temperatureC: patient.temperatureC,
+          spo2: patient.spo2,
+          allergies: patient.allergies,
+          medications: patient.medications,
+          surgeries: patient.surgeries,
+          familyHistory: patient.familyHistory,
+          habits: patient.habits,
+          vaccines: patient.vaccines,
+          chronicConditions: patient.chronicConditions
         });
+
+        // Load appointments after patient data is confirmed to ensure the id is valid
+        this.loadAppointments(patient.id);
       },
       error: err => {
         console.error('Error al cargar paciente:', err);
@@ -130,6 +224,73 @@ export class PatientDetailPageComponent implements OnInit {
     });
   }
 
+  loadLocations(): void {
+    this.http.get<any[]>('assets/colombia-locations.json').subscribe({
+      next: data => {
+        this.locations = data.flatMap(d => d.ciudades.map((city: string) => ({ city, department: d.departamento })));
+        this.filteredLocations = this.locations;
+        const currentLocation = this.patientForm.get('location')?.value;
+        if (currentLocation) {
+          this.filteredLocations = this.locations;
+        }
+      },
+      error: err => {
+        console.error('Error al cargar ciudades:', err);
+      }
+    });
+  }
+
+  onLocationInput(term: string): void {
+    const value = term.toLowerCase().trim();
+    this.locationDropdownOpen = true;
+    if (!value) {
+      this.filteredLocations = this.locations;
+      return;
+    }
+    this.filteredLocations = this.locations.filter(loc => {
+      const haystack = `${loc.city} ${loc.department}`.toLowerCase();
+      return haystack.includes(value);
+    });
+  }
+
+  onSelectLocation(loc: { city: string; department: string }): void {
+    this.patientForm.patchValue({
+      city: loc.city,
+      municipality: loc.department,
+      location: `${loc.city}, ${loc.department}`
+    });
+    this.locationDropdownOpen = false;
+  }
+
+  closeLocationDropdown(): void {
+    setTimeout(() => (this.locationDropdownOpen = false), 120);
+  }
+
+  onEpsInput(term: string): void {
+    const value = term.toLowerCase().trim();
+    this.epsDropdownOpen = true;
+    if (!value) {
+      this.filteredEps = this.epsList;
+      return;
+    }
+    this.filteredEps = this.epsList.filter(eps => eps.toLowerCase().includes(value));
+  }
+
+  onSelectEps(eps: string): void {
+    this.patientForm.patchValue({ eps });
+    this.epsDropdownOpen = false;
+  }
+
+  closeEpsDropdown(): void {
+    setTimeout(() => (this.epsDropdownOpen = false), 120);
+  }
+
+  private composeLocation(city?: string, department?: string): string {
+    if (!city && !department) return '';
+    if (city && department) return `${city}, ${department}`;
+    return city ?? department ?? '';
+  }
+
   loadAppointmentTypes(): void {
     this.appointmentService.getAppointmentTypes().subscribe({
       next: types => {
@@ -149,7 +310,9 @@ export class PatientDetailPageComponent implements OnInit {
       return;
     }
 
-    this.patientService.updatePatient(this.patient.id, this.patientForm.value).subscribe({
+    const { location, ...payload } = this.patientForm.value;
+
+    this.patientService.updatePatient(this.patient.id, payload).subscribe({
       next: () => {
         this.showToast('success', 'Paciente actualizado');
         this.loadPatient(this.patient!.id);

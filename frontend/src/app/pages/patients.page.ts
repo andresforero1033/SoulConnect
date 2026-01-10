@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import {
     FormControl,
     FormGroup,
@@ -50,11 +51,54 @@ export class PatientsPageComponent implements OnInit {
         bloodType: new FormControl('', []),
         heightCm: new FormControl('', []),
         weightKg: new FormControl('', []),
+        location: new FormControl('', []),
+        city: new FormControl('', []),
+        municipality: new FormControl('', []),
+        housingType: new FormControl('', []),
+        socioeconomicStratum: new FormControl('', []),
+        residenceDurationMonths: new FormControl('', []),
+        allergies: new FormControl('', []),
+        medications: new FormControl('', []),
+        surgeries: new FormControl('', []),
+        familyHistory: new FormControl('', []),
+        habits: new FormControl('', []),
+        vaccines: new FormControl('', []),
+        chronicConditions: new FormControl('', []),
     });
 
-    constructor(private patientService: PatientService, private router: Router) { }
+    locations: { city: string; department: string }[] = [];
+    filteredLocations: { city: string; department: string }[] = [];
+    locationDropdownOpen = false;
+    epsList: string[] = [
+        'Nueva EPS',
+        'EPS Sura',
+        'Sanitas',
+        'Salud Total',
+        'Compensar',
+        'Famisanar',
+        'Coosalud',
+        'Mutual Ser',
+        'Aliansalud',
+        'Savia Salud',
+        'Emssanar',
+        'Capital Salud',
+        'Ecoopsos',
+        'Cajacopi',
+        'Asmet Salud',
+        'SOS EPS',
+        'EPS Familiar de Colombia',
+        'Dusakawi EPSI',
+        'Mallamas EPSI',
+        'AIC EPSI',
+    ];
+    filteredEps: string[] = [];
+    epsDropdownOpen = false;
+
+    constructor(private patientService: PatientService, private router: Router, private http: HttpClient) { }
 
     ngOnInit(): void {
+        this.filteredEps = this.epsList;
+        this.loadLocations();
         this.loadPatients();
     }
 
@@ -78,7 +122,7 @@ export class PatientsPageComponent implements OnInit {
             return;
         }
 
-        const payload = this.patientForm.value;
+        const { location, ...payload } = this.patientForm.value;
 
         if (this.editingId) {
             this.patientService.updatePatient(this.editingId, payload).subscribe({
@@ -131,6 +175,19 @@ export class PatientsPageComponent implements OnInit {
             bloodType: patient.bloodType,
             heightCm: patient.heightCm,
             weightKg: patient.weightKg,
+            location: this.composeLocation(patient.city, patient.municipality),
+            city: patient.city,
+            municipality: patient.municipality,
+            housingType: patient.housingType,
+            socioeconomicStratum: patient.socioeconomicStratum,
+            residenceDurationMonths: patient.residenceDurationMonths,
+            allergies: patient.allergies,
+            medications: patient.medications,
+            surgeries: patient.surgeries,
+            familyHistory: patient.familyHistory,
+            habits: patient.habits,
+            vaccines: patient.vaccines,
+            chronicConditions: patient.chronicConditions,
         });
     }
 
@@ -197,6 +254,64 @@ export class PatientsPageComponent implements OnInit {
 
     navigateToPatientDetail(patient: any): void {
         this.router.navigate(['/pacientes', patient.id]);
+    }
+
+    loadLocations(): void {
+        this.http.get<any[]>('assets/colombia-locations.json').subscribe({
+            next: (data: any[]) => {
+                this.locations = data.flatMap((d: any) => d.ciudades.map((city: string) => ({ city, department: d.departamento })));
+                this.filteredLocations = this.locations;
+            },
+            error: (err: any) => console.error('Error al cargar ciudades:', err),
+        });
+    }
+
+    onLocationInput(term: string): void {
+        const value = term.toLowerCase().trim();
+        this.locationDropdownOpen = true;
+        if (!value) {
+            this.filteredLocations = this.locations;
+            return;
+        }
+        this.filteredLocations = this.locations.filter((loc) => `${loc.city} ${loc.department}`.toLowerCase().includes(value));
+    }
+
+    onSelectLocation(loc: { city: string; department: string }): void {
+        this.patientForm.patchValue({
+            city: loc.city,
+            municipality: loc.department,
+            location: `${loc.city}, ${loc.department}`,
+        });
+        this.locationDropdownOpen = false;
+    }
+
+    closeLocationDropdown(): void {
+        setTimeout(() => (this.locationDropdownOpen = false), 120);
+    }
+
+    onEpsInput(term: string): void {
+        const value = term.toLowerCase().trim();
+        this.epsDropdownOpen = true;
+        if (!value) {
+            this.filteredEps = this.epsList;
+            return;
+        }
+        this.filteredEps = this.epsList.filter((eps) => eps.toLowerCase().includes(value));
+    }
+
+    onSelectEps(eps: string): void {
+        this.patientForm.patchValue({ eps });
+        this.epsDropdownOpen = false;
+    }
+
+    closeEpsDropdown(): void {
+        setTimeout(() => (this.epsDropdownOpen = false), 120);
+    }
+
+    private composeLocation(city?: string, department?: string): string {
+        if (!city && !department) return '';
+        if (city && department) return `${city}, ${department}`;
+        return city ?? department ?? '';
     }
 
     showToast(type: 'success' | 'error', message: string): void {

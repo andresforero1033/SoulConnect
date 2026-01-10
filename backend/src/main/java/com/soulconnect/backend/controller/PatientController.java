@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/patients") // La dirección web será http://localhost:8080/api/patients
-@CrossOrigin(origins = "http://localhost:4200") // Permite que Angular (puerto 4200) nos hable
+@RequestMapping("/api/patients")
+@CrossOrigin(origins = "*") // Permitimos llamadas desde el frontend en Render
 public class PatientController {
 
     private final PatientRepository repository;

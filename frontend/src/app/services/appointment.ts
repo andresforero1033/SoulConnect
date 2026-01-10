@@ -4,8 +4,9 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
-  private apiUrl = 'http://localhost:8080/api/appointments';
-  private typesUrl = 'http://localhost:8080/api/appointment-types';
+  private readonly apiBase = (window as any)['API_BASE_URL'] || 'https://soulconnect-z64l.onrender.com';
+  private apiUrl = `${this.apiBase}/api/appointments`;
+  private typesUrl = `${this.apiBase}/api/appointment-types`;
 
   constructor(private http: HttpClient) {}
 

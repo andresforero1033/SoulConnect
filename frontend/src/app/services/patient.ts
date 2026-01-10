@@ -6,7 +6,8 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class PatientService {
-  private apiUrl = 'http://localhost:8080/api/patients';
+  private readonly apiBase = (window as any)['API_BASE_URL'] || 'https://soulconnect-z64l.onrender.com';
+  private apiUrl = `${this.apiBase}/api/patients`;
 
   constructor(private http: HttpClient) { }
 

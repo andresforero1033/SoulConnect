@@ -13,7 +13,6 @@ export class AppComponent {
   navItems = [
     { path: '/pacientes', icon: 'groups', label: 'Pacientes' },
     { path: '/citas', icon: 'event_note', label: 'Citas' },
-    { path: '/historias', icon: 'prescriptions', label: 'Historias' },
     { path: '/indicadores', icon: 'analytics', label: 'Indicadores' }
   ];
 }

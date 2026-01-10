@@ -15,10 +15,6 @@ export const routes: Routes = [
 		loadComponent: () => import('./pages/appointments.page').then(m => m.AppointmentsPageComponent)
 	},
 	{
-		path: 'historias',
-		loadComponent: () => import('./pages/histories.page').then(m => m.HistoriesPageComponent)
-	},
-	{
 		path: 'indicadores',
 		loadComponent: () => import('./pages/indicators.page').then(m => m.IndicatorsPageComponent)
 	},

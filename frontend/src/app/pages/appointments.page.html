@@ -21,34 +21,66 @@
   </div>
 </div>
 
-<main class="workspace">
+<main class="workspace full-width">
   <section class="card form-panel">
     <div class="card-header">
       <div>
         <p class="eyebrow">Selecciona paciente</p>
-        <h2>Filtrar agenda</h2>
-        <p>Elige un paciente para ver y gestionar sus citas.</p>
+        <h2>Buscar por documento</h2>
+        <p>Escribe el documento del paciente para ver y gestionar sus citas.</p>
       </div>
     </div>
 
-    <div class="form-grid">
+    <form class="form-grid" (ngSubmit)="onSearchByDocument()">
       <div class="form-group">
-        <label for="patientSelector">Paciente</label>
-        <select
-          id="patientSelector"
-          [value]="selectedPatient?.id || ''"
-          (change)="selectPatientFromList($any($event.target).value)"
-        >
-          <option value="">Selecciona un paciente</option>
-          <option *ngFor="let p of patients" [value]="p.id">{{ p.firstName }} {{ p.lastName }} · {{ p.identificationNumber }}</option>
-        </select>
+        <label for="patientDocument">Documento</label>
+        <input
+          id="patientDocument"
+          type="text"
+          placeholder="Ingresa el número de documento"
+          [formControl]="patientLookupControl"
+          (input)="onFilterPatients($event.target.value)"
+        />
+        <small *ngIf="patientLookupControl.invalid && patientLookupControl.touched" class="hint">Ingresa un documento válido</small>
       </div>
       <div class="actions">
-        <button type="button" class="btn-primary" (click)="goToPatients()">
+        <button type="submit" class="btn-primary">
+          <span class="material-symbols-rounded">search</span>
+          Buscar
+        </button>
+        <button type="button" class="btn ghost" (click)="clearSelection()" *ngIf="selectedPatient">
+          <span class="material-symbols-rounded">close</span>
+          Limpiar
+        </button>
+        <button type="button" class="btn-secondary" (click)="goToPatients()">
           <span class="material-symbols-rounded">person_add</span>
           Gestionar pacientes
         </button>
       </div>
+    </form>
+
+    <div class="table-wrapper" *ngIf="filteredPatients.length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Documento</th>
+            <th>Seleccionar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filteredPatients">
+            <td>{{ p.firstName }} {{ p.lastName }}</td>
+            <td>{{ p.identificationNumber }}</td>
+            <td>
+              <button type="button" class="btn-secondary" (click)="setSelectedPatient(p)">
+                <span class="material-symbols-rounded">check_circle</span>
+                Usar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 
@@ -83,7 +115,25 @@
         </div>
         <div class="form-group">
           <label for="specialty">Especialidad</label>
-          <input id="specialty" type="text" formControlName="specialty" placeholder="Ej. Cardiología" />
+          <div class="typeahead">
+            <input
+              id="specialty"
+              type="text"
+              formControlName="specialty"
+              placeholder="Busca o selecciona"
+              autocomplete="off"
+              (input)="onSpecialtyInput($event.target.value)"
+              (focus)="typeDropdownOpen = true"
+              (blur)="closeTypeDropdown()"
+            />
+            <div class="dropdown" *ngIf="typeDropdownOpen && filteredTypes.length > 0">
+              <button type="button" *ngFor="let t of filteredTypes" (mousedown)="onSelectType(t)">
+                <span class="code">{{ t.code }}</span>
+                <span class="name">{{ t.name }}</span>
+                <span class="spec">{{ t.specialty }}</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label for="status">Estado</label>

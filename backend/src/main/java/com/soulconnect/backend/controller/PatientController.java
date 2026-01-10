@@ -26,6 +26,20 @@ public class PatientController {
         return repository.findAll();
     }
 
+    // GET: Traer un paciente por ID
+    @GetMapping("/{id}")
+    public Patient getPatient(@PathVariable UUID id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+    }
+
+    // GET: Buscar un paciente por documento
+    @GetMapping("/search")
+    public Patient getByIdentificationNumber(@RequestParam String identificationNumber) {
+        return repository.findByIdentificationNumber(identificationNumber)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+    }
+
     // POST: Guardar un nuevo paciente
     @PostMapping
     public Patient createPatient(@RequestBody Patient patient) {
@@ -34,8 +48,8 @@ public class PatientController {
         return repository.save(patient);
     }
 
-        @PutMapping("/{id}")
-        public Patient updatePatient(@PathVariable UUID id, @RequestBody Patient payload) {
+    @PutMapping("/{id}")
+    public Patient updatePatient(@PathVariable UUID id, @RequestBody Patient payload) {
         Patient existing = repository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
 
@@ -50,6 +64,39 @@ public class PatientController {
         existing.setDateOfBirth(payload.getDateOfBirth());
         existing.setEmail(payload.getEmail());
         existing.setPhoneNumber(payload.getPhoneNumber());
+        existing.setEps(payload.getEps());
+        existing.setAddress(payload.getAddress());
+        existing.setBloodType(payload.getBloodType());
+        existing.setHeightCm(payload.getHeightCm());
+        existing.setWeightKg(payload.getWeightKg());
+        existing.setSexBiological(payload.getSexBiological());
+        existing.setGenderIdentity(payload.getGenderIdentity());
+        existing.setMaritalStatus(payload.getMaritalStatus());
+        existing.setEducationLevel(payload.getEducationLevel());
+        existing.setOccupation(payload.getOccupation());
+        existing.setEmergencyContactName(payload.getEmergencyContactName());
+        existing.setEmergencyContactPhone(payload.getEmergencyContactPhone());
+        existing.setCity(payload.getCity());
+        existing.setMunicipality(payload.getMunicipality());
+        existing.setNeighborhood(payload.getNeighborhood());
+        existing.setPostalCode(payload.getPostalCode());
+        existing.setHousingType(payload.getHousingType());
+        existing.setSocioeconomicStratum(payload.getSocioeconomicStratum());
+        existing.setResidenceDurationMonths(payload.getResidenceDurationMonths());
+        existing.setAbdominalCircumferenceCm(payload.getAbdominalCircumferenceCm());
+        existing.setHeartRateBpm(payload.getHeartRateBpm());
+        existing.setRespiratoryRateRpm(payload.getRespiratoryRateRpm());
+        existing.setBloodPressureSys(payload.getBloodPressureSys());
+        existing.setBloodPressureDia(payload.getBloodPressureDia());
+        existing.setTemperatureC(payload.getTemperatureC());
+        existing.setSpo2(payload.getSpo2());
+        existing.setAllergies(payload.getAllergies());
+        existing.setMedications(payload.getMedications());
+        existing.setSurgeries(payload.getSurgeries());
+        existing.setFamilyHistory(payload.getFamilyHistory());
+        existing.setHabits(payload.getHabits());
+        existing.setVaccines(payload.getVaccines());
+        existing.setChronicConditions(payload.getChronicConditions());
 
         return repository.save(existing);
         }

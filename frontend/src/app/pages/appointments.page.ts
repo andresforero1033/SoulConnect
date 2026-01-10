@@ -14,11 +14,17 @@ import { PatientService } from '../services/patient';
 })
 export class AppointmentsPageComponent implements OnInit {
   patients: any[] = [];
+  filteredPatients: any[] = [];
   selectedPatient: any | null = null;
   appointments: any[] = [];
+  appointmentTypes: any[] = [];
+  filteredTypes: any[] = [];
   statusOptions = ['PENDING', 'COMPLETED', 'CANCELLED'];
   toasts: { type: 'success' | 'error'; message: string; id: number }[] = [];
   pendingPatientId: string | null = null;
+  typeDropdownOpen = false;
+
+  patientLookupControl = new FormControl('', [Validators.required, Validators.minLength(3)]);
 
   appointmentForm = new FormGroup({
     date: new FormControl('', [Validators.required]),
@@ -38,21 +44,33 @@ export class AppointmentsPageComponent implements OnInit {
     this.route.queryParamMap.subscribe(params => {
       const id = params.get('patientId');
       this.pendingPatientId = id;
-      if (id && this.patients.length) {
-        this.selectPatientFromList(id);
+      if (id) {
+        this.loadPatientById(id);
       }
     });
 
     this.loadPatients();
+    this.loadAppointmentTypes();
+  }
+
+  loadAppointmentTypes(): void {
+    this.appointmentService.getAppointmentTypes().subscribe({
+      next: (types: any[]) => {
+        this.appointmentTypes = types;
+        this.filteredTypes = types;
+      },
+      error: (err: any) => {
+        console.error('Error al cargar tipos de cita:', err);
+        this.showToast('error', 'No se pudieron cargar las especialidades');
+      }
+    });
   }
 
   loadPatients(): void {
     this.patientService.getPatients().subscribe({
       next: (data: any[]) => {
         this.patients = data;
-        if (this.pendingPatientId) {
-          this.selectPatientFromList(this.pendingPatientId);
-        }
+        this.filteredPatients = data;
       },
       error: (err: any) => {
         console.error('Error al cargar pacientes:', err);
@@ -61,30 +79,115 @@ export class AppointmentsPageComponent implements OnInit {
     });
   }
 
-  selectPatientFromList(patientId: string): void {
-    if (!patientId) {
-      this.selectedPatient = null;
-      this.appointments = [];
-      this.router.navigate([], { queryParams: { patientId: null }, queryParamsHandling: 'merge' });
+  onSearchByDocument(): void {
+    if (this.patientLookupControl.invalid) {
+      this.patientLookupControl.markAsTouched();
+      this.showToast('error', 'Ingresa un documento para buscar');
       return;
     }
 
-    const patient = this.patients.find(p => p.id === patientId);
-    if (!patient) {
-      this.showToast('error', 'Paciente no encontrado');
+    const identificationNumber = `${this.patientLookupControl.value ?? ''}`.trim();
+    if (!identificationNumber) {
+      this.showToast('error', 'Ingresa un documento para buscar');
       return;
     }
-    this.onSelectPatient(patient);
+
+    this.patientService.getPatientByDocument(identificationNumber).subscribe({
+      next: patient => {
+        this.setSelectedPatient(patient);
+      },
+      error: (err: any) => {
+        console.error('Error al buscar paciente:', err);
+        this.clearSelection(false);
+        if (err?.status === 404) {
+          this.showToast('error', 'Paciente no encontrado');
+        } else {
+          this.showToast('error', 'No se pudo buscar el paciente');
+        }
+      }
+    });
   }
 
-  onSelectPatient(patient: any): void {
+  onFilterPatients(term: string): void {
+    const value = term.toLowerCase().trim();
+    if (!value) {
+      this.filteredPatients = this.patients;
+      return;
+    }
+
+    this.filteredPatients = this.patients.filter(p => {
+      const fullName = `${p.firstName ?? ''} ${p.lastName ?? ''}`.toLowerCase();
+      const idNumber = `${p.identificationNumber ?? ''}`.toLowerCase();
+      return fullName.includes(value) || idNumber.includes(value);
+    });
+
+    const exact = this.filteredPatients.find(p => `${p.identificationNumber ?? ''}`.toLowerCase() === value);
+    if (exact) {
+      this.setSelectedPatient(exact);
+    }
+  }
+
+  onSpecialtyInput(term: string): void {
+    const value = term.toLowerCase().trim();
+    this.typeDropdownOpen = true;
+
+    if (!value) {
+      this.filteredTypes = this.appointmentTypes;
+      return;
+    }
+
+    this.filteredTypes = this.appointmentTypes.filter(t => {
+      const haystack = `${t.name ?? ''} ${t.specialty ?? ''} ${t.code ?? ''}`.toLowerCase();
+      return haystack.includes(value);
+    });
+  }
+
+  onSelectType(type: any): void {
+    const value = type?.name ?? type?.specialty ?? '';
+    this.appointmentForm.patchValue({ specialty: value });
+    this.typeDropdownOpen = false;
+  }
+
+  closeTypeDropdown(): void {
+    setTimeout(() => (this.typeDropdownOpen = false), 120);
+  }
+
+  loadPatientById(patientId: string): void {
+    this.patientService.getPatient(patientId).subscribe({
+      next: patient => {
+        this.setSelectedPatient(patient, false);
+        if (patient?.identificationNumber) {
+          this.patientLookupControl.setValue(patient.identificationNumber, { emitEvent: false });
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar paciente:', err);
+        this.clearSelection(false);
+        this.showToast('error', 'No se pudo cargar el paciente');
+      }
+    });
+  }
+
+  setSelectedPatient(patient: any, updateQueryParams: boolean = true): void {
     this.selectedPatient = patient;
     this.appointmentForm.reset({ status: 'PENDING' });
     this.loadAppointments(patient.id);
-    this.router.navigate([], {
-      queryParams: { patientId: patient.id },
-      queryParamsHandling: 'merge'
-    });
+    if (updateQueryParams) {
+      this.router.navigate([], {
+        queryParams: { patientId: patient.id },
+        queryParamsHandling: 'merge'
+      });
+    }
+  }
+
+  clearSelection(navigate: boolean = true): void {
+    this.selectedPatient = null;
+    this.appointments = [];
+    this.appointmentForm.reset({ status: 'PENDING' });
+    this.patientLookupControl.reset();
+    if (navigate) {
+      this.router.navigate([], { queryParams: { patientId: null }, queryParamsHandling: 'merge' });
+    }
   }
 
   loadAppointments(patientId: string): void {

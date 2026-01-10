@@ -185,6 +185,38 @@
     align-items: start;
 }
 
+.workspace.full-width {
+    grid-template-columns: 1fr;
+}
+
+.patient-detail.full-width {
+    width: 100%;
+}
+
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+    gap: 16px;
+    align-items: start;
+}
+
+.patient-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.patient-detail .section-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+.patient-detail .card {
+    width: 100%;
+}
+
 .card {
     background: #f8fafc;
     border-radius: 16px;
@@ -238,8 +270,8 @@
 
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px 28px;
     padding: 12px 0 4px;
 }
 
@@ -371,6 +403,10 @@ select.invalid {
     border: 1px solid #e2e8f0;
     background: #fff;
     box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.table-wrapper .btn-secondary {
+    padding: 8px 12px;
 }
 
 table {
@@ -558,4 +594,81 @@ tbody tr:nth-child(even) {
         transform: translateY(-1px);
         box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
     }
+}
+
+.typeahead {
+    position: relative;
+}
+
+.typeahead .dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.15);
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.typeahead .dropdown button {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: transparent;
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms ease;
+
+    &:hover {
+        background: #ecfeff;
+    }
+}
+
+.typeahead .dropdown .code {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.typeahead .dropdown .name {
+    font-weight: 600;
+    color: #0f172a;
+}
+
+.typeahead .dropdown .spec {
+    grid-column: 2;
+    font-size: 0.9rem;
+    color: #475569;
+}
+.form-group textarea {
+    width: 100%;
+    min-height: 90px;
+    padding: 11px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    background: #fff;
+    resize: vertical;
+    transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+
+    &:focus {
+        outline: none;
+        border-color: #22d3ee;
+        box-shadow: 0 10px 30px rgba(34, 211, 238, 0.2);
+        transform: translateY(-1px);
+    }
+}
+
+.bmi-box {
+    padding: 12px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #fff;
+    font-weight: 700;
+    color: #0f172a;
 }

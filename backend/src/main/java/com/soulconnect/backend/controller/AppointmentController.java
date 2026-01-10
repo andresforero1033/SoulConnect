@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,6 +54,33 @@ public class AppointmentController {
         appointment.setSpecialty(request.getSpecialty());
         appointment.setStatus(request.getStatus() != null ? request.getStatus() : AppointmentStatus.PENDING);
         appointment.setPatient(patient);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    @PutMapping("/{id}")
+    public Appointment updateAppointment(@PathVariable UUID id, @RequestBody AppointmentRequest request) {
+        Appointment appointment = appointmentRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cita no encontrada"));
+
+        if (request.getPatientId() != null && !request.getPatientId().equals(appointment.getPatient().getId())) {
+            Patient newPatient = patientRepository.findById(request.getPatientId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Paciente no encontrado"));
+            appointment.setPatient(newPatient);
+        }
+
+        if (request.getDate() != null) {
+            appointment.setDate(request.getDate());
+        }
+        if (request.getTime() != null) {
+            appointment.setTime(request.getTime());
+        }
+        if (request.getSpecialty() != null) {
+            appointment.setSpecialty(request.getSpecialty());
+        }
+        if (request.getStatus() != null) {
+            appointment.setStatus(request.getStatus());
+        }
 
         return appointmentRepository.save(appointment);
     }

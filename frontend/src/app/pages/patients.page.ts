@@ -45,6 +45,11 @@ export class PatientsPageComponent implements OnInit {
         dateOfBirth: new FormControl('', [Validators.required, notFutureDate]),
         email: new FormControl('', [Validators.email]),
         phoneNumber: new FormControl('', []),
+        eps: new FormControl('', []),
+        address: new FormControl('', []),
+        bloodType: new FormControl('', []),
+        heightCm: new FormControl('', []),
+        weightKg: new FormControl('', []),
     });
 
     constructor(private patientService: PatientService, private router: Router) { }
@@ -121,6 +126,11 @@ export class PatientsPageComponent implements OnInit {
             dateOfBirth: patient.dateOfBirth,
             email: patient.email,
             phoneNumber: patient.phoneNumber,
+            eps: patient.eps,
+            address: patient.address,
+            bloodType: patient.bloodType,
+            heightCm: patient.heightCm,
+            weightKg: patient.weightKg,
         });
     }
 
@@ -183,6 +193,10 @@ export class PatientsPageComponent implements OnInit {
 
     navigateToAppointments(patient: any): void {
         this.router.navigate(['/citas'], { queryParams: { patientId: patient.id } });
+    }
+
+    navigateToPatientDetail(patient: any): void {
+        this.router.navigate(['/pacientes', patient.id]);
     }
 
     showToast(type: 'success' | 'error', message: string): void {

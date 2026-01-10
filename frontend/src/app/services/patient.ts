@@ -15,6 +15,18 @@ export class PatientService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  // Obtener un paciente por ID
+  getPatient(id: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  }
+
+  // Buscar paciente por documento
+  getPatientByDocument(identificationNumber: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/search`, {
+      params: { identificationNumber }
+    });
+  }
+
   // Guardar un nuevo paciente
   createPatient(patient: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, patient);
